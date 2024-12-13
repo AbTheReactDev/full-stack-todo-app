@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { MONGODB_URI } from './config';
 
 // Interface to define the shape of our MongoDB connection cache
 // We cache both the active connection and any pending connection promise
@@ -12,7 +13,7 @@ declare global {
   var mongoose: { conn: mongoose.Connection | null; promise: Promise<mongoose.Connection> | null };
 }
 
-const MONGODB_URI = process.env.MONGODB_URI;
+
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
