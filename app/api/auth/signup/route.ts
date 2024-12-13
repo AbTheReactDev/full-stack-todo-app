@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../../lib/mongodb';
-import User from '../../../../models/User';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
@@ -8,18 +8,57 @@ export async function POST(request: Request) {
     await dbConnect();
     const { name, email, password } = await request.json();
 
+    // Input validation
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { message: 'Name, email and password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { message: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      return NextResponse.json(
+        { message: 'Password must be at least 8 characters long' },
+        { status: 400 }
+      );
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json({ message: 'User already exists' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'User already exists' },
+        { status: 400 }
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const newUser = new User({name, email, password: hashedPassword });
+    const newUser = new User({
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password: hashedPassword
+    });
+
     await newUser.save();
-    return NextResponse.json({ message: 'User created successfully' }, { status: 201 });
+    return NextResponse.json(
+      { message: 'User created successfully' },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    console.error('Signup error:', error);
+    return NextResponse.json(
+      { message: 'Server error' },
+      { status: 500 }
+    );
   }
 }

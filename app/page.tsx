@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Key, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Container, Form, ListGroup, Spinner } from "react-bootstrap";
 
@@ -16,7 +16,8 @@ export default function Home() {
   const router = useRouter();
 
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTask, setNewTask] = useState<string>("");
+  const [newTask, setNewTask] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchTodos = async () => {
@@ -51,6 +52,28 @@ export default function Home() {
     }
   };
 
+  const handleEditTodo = async (id: string) => {
+    try {
+      const res = await fetch(`/api/todos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task: newTask }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update todo");
+      }
+
+      const updatedTodo = await res.json();
+      setTodos(todos.map((todo) => (todo._id === id ? updatedTodo : todo)));
+      setNewTask("");
+      setEditingId(null);
+      fetchTodos();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleToggleComplete = async (id: string, completed: boolean) => {
     try {
       const res = await fetch(`/api/todos/${id}`, {
@@ -64,8 +87,8 @@ export default function Home() {
       }
 
       const updatedTodo = await res.json();
-
       setTodos(todos.map((todo) => (todo._id === id ? updatedTodo : todo)));
+      fetchTodos();
     } catch (error) {
       console.error(error);
     }
@@ -73,14 +96,7 @@ export default function Home() {
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      const res = await fetch(`/api/todos/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete todo");
-      }
-
+      await fetch(`/api/todos/${id}`, { method: "DELETE" });
       setTodos(todos.filter((todo) => todo._id !== id));
     } catch (error) {
       console.error(error);
@@ -93,12 +109,11 @@ export default function Home() {
     } else if (status === "authenticated") {
       fetchTodos();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, router]);
 
-  if (status === "loading") {
+  if (loading) {
     return (
-      <Container className="text-center">
+      <Container className="text-center d-flex justify-content-center align-items-center min-vh-100">
         <Spinner animation="border" />
       </Container>
     );
@@ -124,9 +139,23 @@ export default function Home() {
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
             />
-            <Button variant="primary" className="ms-2" onClick={handleAddTodo}>
-              Add
-            </Button>
+            {editingId ? (
+              <Button
+                variant="success"
+                className="ms-2"
+                onClick={() => handleEditTodo(editingId)}
+              >
+                Edit
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                className="ms-2"
+                onClick={handleAddTodo}
+              >
+                Add
+              </Button>
+            )}
           </Form>
           <ListGroup className="mt-4">
             {todos?.map((todo) => (
@@ -143,12 +172,25 @@ export default function Home() {
                 >
                   {todo.task}
                 </span>
-                <Button
-                  variant="danger"
-                  onClick={() => handleDeleteTodo(todo._id)}
-                >
-                  Delete
-                </Button>
+                <div>
+                  <Button
+                    variant="success"
+                    className="me-2"
+                    onClick={() => {
+                      setNewTask(todo.task);
+                      setEditingId(todo._id);
+                    }}
+                    disabled={editingId === todo._id}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteTodo(todo._id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </ListGroup.Item>
             ))}
           </ListGroup>

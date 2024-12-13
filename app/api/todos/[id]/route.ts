@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '../../../../lib/mongodb';
-import Todo from '../../../../models/Todo';
+import dbConnect from '@/lib/mongodb';
+import Todo from '@/models/Todo';
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
     await dbConnect();
