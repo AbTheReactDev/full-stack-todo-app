@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { Alert, Button, Form, Container } from "react-bootstrap";
 
 export default function SignIn() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -55,7 +55,7 @@ export default function SignIn() {
           <Button variant="primary" type="submit">
             Sign In
           </Button>
-          <Button href="/auth/signup" variant="secondary" >
+          <Button href="/auth/signup" variant="secondary">
             Sign Up
           </Button>
         </div>

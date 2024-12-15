@@ -1,18 +1,17 @@
-import NextAuthProvider from "@/components/NextAuthProvider";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { SessionProvider } from "next-auth/react";
-import { ReactNode } from "react";
+"use client";
 
-export const metadata = {
-  title: "Todo App",
-  description: "A simple todo app with authentication",
-};
+import NextAuthProvider from "@/components/NextAuthProvider";
+import StoreProvider from "@/components/StoreProvider";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { ReactNode } from "react";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <NextAuthProvider>
+          <StoreProvider>{children}</StoreProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );
