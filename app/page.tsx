@@ -4,40 +4,30 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Container, Form, ListGroup, Spinner } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { addTodo, deleteTodo, setTodos, updateTodo } from "@/redux/todoSlice";
 
 interface Todo {
-  _id: string;
-  task: string;
+  title: string;
   completed: boolean;
+  _id: string;
 }
 
 export default function Home() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTask, setNewTask] = useState("");
+  const dispatch = useDispatch();
+  const { data: session, status } = useSession();
+  const todos = useSelector((state: RootState) => state.todos.todos); // Access the todos array from the state
+  const [title, setTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const fetchTodos = async () => {
-    try {
-      const res = await fetch("/api/todos");
-      const data = await res.json();
-      setTodos(data);
-    } catch (error) {
-      console.error("Failed to fetch todos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddTodo = async () => {
     try {
       const res = await fetch("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: newTask }),
+        body: JSON.stringify({ title: title }),
       });
 
       if (!res.ok) {
@@ -45,8 +35,8 @@ export default function Home() {
       }
 
       const todo = await res.json();
-      setTodos([...todos, todo]);
-      setNewTask("");
+      dispatch(addTodo(todo));
+      setTitle("");
     } catch (error) {
       console.error(error);
     }
@@ -57,7 +47,7 @@ export default function Home() {
       const res = await fetch(`/api/todos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: newTask }),
+        body: JSON.stringify({ title: title }),
       });
 
       if (!res.ok) {
@@ -65,10 +55,9 @@ export default function Home() {
       }
 
       const updatedTodo = await res.json();
-      setTodos(todos.map((todo) => (todo._id === id ? updatedTodo : todo)));
-      setNewTask("");
+      dispatch(updateTodo(updatedTodo));
+      setTitle("");
       setEditingId(null);
-      fetchTodos();
     } catch (error) {
       console.error(error);
     }
@@ -87,8 +76,7 @@ export default function Home() {
       }
 
       const updatedTodo = await res.json();
-      setTodos(todos.map((todo) => (todo._id === id ? updatedTodo : todo)));
-      fetchTodos();
+      dispatch(updateTodo(updatedTodo));
     } catch (error) {
       console.error(error);
     }
@@ -97,9 +85,19 @@ export default function Home() {
   const handleDeleteTodo = async (id: string) => {
     try {
       await fetch(`/api/todos/${id}`, { method: "DELETE" });
-      setTodos(todos.filter((todo) => todo._id !== id));
+      dispatch(deleteTodo(id));
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const fetchTodos = async () => {
+    try {
+      const res = await fetch("/api/todos");
+      const data = await res.json();
+      dispatch(setTodos(data));
+    } catch (error) {
+      console.error("Failed to fetch todos:", error);
     }
   };
 
@@ -109,9 +107,10 @@ export default function Home() {
     } else if (status === "authenticated") {
       fetchTodos();
     }
-  }, [status, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, router, dispatch]);
 
-  if (loading) {
+  if (status === "loading") {
     return (
       <Container className="text-center d-flex justify-content-center align-items-center min-vh-100">
         <Spinner animation="border" />
@@ -136,8 +135,8 @@ export default function Home() {
             <Form.Control
               type="text"
               placeholder="New task"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
             {editingId ? (
               <Button
@@ -158,7 +157,7 @@ export default function Home() {
             )}
           </Form>
           <ListGroup className="mt-4">
-            {todos?.map((todo) => (
+            {todos?.map((todo: Todo) => (
               <ListGroup.Item
                 key={todo._id}
                 className="d-flex justify-content-between align-items-center"
@@ -170,14 +169,14 @@ export default function Home() {
                   }}
                   onClick={() => handleToggleComplete(todo._id, todo.completed)}
                 >
-                  {todo.task}
+                  {todo.title}
                 </span>
                 <div>
                   <Button
                     variant="success"
                     className="me-2"
                     onClick={() => {
-                      setNewTask(todo.task);
+                      setTitle(todo.title);
                       setEditingId(todo._id);
                     }}
                     disabled={editingId === todo._id}

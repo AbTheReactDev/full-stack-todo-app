@@ -14,12 +14,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const user = await User.findOne({ email: session.user.email });
-        if (!user) {
+        const isUser = await User.findOne({ email: session.user.email });
+        if (!isUser) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
 
-        const { task, completed } = await request.json();
+        const { title, completed } = await request.json();
 
         const { id } = params;
 
@@ -27,20 +27,20 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
             return NextResponse.json({ message: 'Todo ID is required' }, { status: 400 });
         }
 
-        const todo = await Todo.findOne({ _id: id, userId: user._id });
-        if (!todo) {
+        const isTodo = await Todo.findOne({ _id: id, userId: isUser._id });
+        if (!isTodo) {
             return NextResponse.json({ message: 'Todo not found' }, { status: 404 });
         }
 
-        if (task !== undefined) {
-            todo.task = task.trim();
+        if (title !== undefined) {
+            isTodo.title = title.trim();
         }
 
         if (completed !== undefined) {
-            todo.completed = completed;
+            isTodo.completed = completed;
         }
-        await todo.save();
-        return NextResponse.json({ message: "Todo updated successfully", todo });
+        await isTodo.save();
+        return NextResponse.json({ message: "Todo updated successfully", isTodo });
     } catch (error) {
         console.error('Error updating todo:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
@@ -59,8 +59,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
+    const isUser = await User.findOne({ email: session.user.email });
+    if (!isUser) {
         return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
@@ -68,8 +68,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         return NextResponse.json({ message: 'Todo ID is required' }, { status: 400 });
     }
 
-    const todo = await Todo.findOneAndDelete({ _id: id, userId: user._id });
-    if (!todo) {
+    const isTodo = await Todo.findOneAndDelete({ _id: id, userId: isUser._id });
+    if (!isTodo) {
         return NextResponse.json({ message: 'Todo not found' }, { status: 404 });
     }
 

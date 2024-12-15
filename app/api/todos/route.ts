@@ -15,12 +15,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
+    const isUser = await User.findOne({ email: session.user.email });
+    if (!isUser) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const todos = await Todo.find({ userId: user._id });
+    const todos = await Todo.find({ userId: isUser._id });
     return NextResponse.json(todos);
   } catch (error) {
     console.error('Error fetching todos:', error);
@@ -37,20 +37,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
+    const isUser = await User.findOne({ email: session.user.email });
+    if (!isUser) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const { task } = await request.json();
+    const { title } = await request.json();
 
-    if (!task) {
+    if (!title) {
       return NextResponse.json({ message: 'Task is required' }, { status: 400 });
     }
 
     const newTodo = new Todo({
-      userId: user._id,
-      task: task.trim(),
+      userId: isUser._id,
+      title: title.trim(),
       completed: false,
     });
 
