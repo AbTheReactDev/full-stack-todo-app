@@ -21,25 +21,23 @@ export default function Home() {
   const todos = useSelector((state: RootState) => state.todos.todos); // Access the todos array from the state
   const [title, setTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleAddTodo = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title }),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to add todo");
-      }
-
       const todo = await res.json();
       dispatch(addTodo(todo));
       setTitle("");
     } catch (error) {
       console.error(error);
     }
+    setLoading(false);
   };
 
   const handleEditTodo = async (id: string) => {
@@ -49,15 +47,11 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title }),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to update todo");
-      }
-
       const updatedTodo = await res.json();
       dispatch(updateTodo(updatedTodo));
-      setTitle("");
       setEditingId(null);
+      setTitle("");
+      fetchTodos();
     } catch (error) {
       console.error(error);
     }
@@ -70,13 +64,9 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed: !completed }),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to update todo");
-      }
-
       const updatedTodo = await res.json();
       dispatch(updateTodo(updatedTodo));
+      fetchTodos();
     } catch (error) {
       console.error(error);
     }
@@ -110,7 +100,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, router, dispatch]);
 
-  if (status === "loading") {
+  if (status === "loading" || loading) {
     return (
       <Container className="text-center d-flex justify-content-center align-items-center min-vh-100">
         <Spinner animation="border" />
