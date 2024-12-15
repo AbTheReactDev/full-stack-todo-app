@@ -2,8 +2,10 @@
 
 import NextAuthProvider from "@/components/NextAuthProvider";
 import StoreProvider from "@/components/StoreProvider";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { ReactNode } from "react";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -12,9 +14,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <title>Todo App</title>
       </head>
       <body>
-        <NextAuthProvider>
-          <StoreProvider>{children}</StoreProvider>
-        </NextAuthProvider>
+        <Toaster />
+        <ThemeProvider>
+          <NextAuthProvider>
+            <StoreProvider>{children}</StoreProvider>
+          </NextAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

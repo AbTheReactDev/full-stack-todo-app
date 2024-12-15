@@ -1,13 +1,26 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Container, Form, ListGroup, Spinner } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { addTodo, deleteTodo, setTodos, updateTodo } from "@/redux/todoSlice";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FaPowerOff } from "react-icons/fa6";
+import { MdDarkMode } from "react-icons/md";
 
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ThemeToggle } from "@/components/ThemeToggle";
 interface Todo {
   title: string;
   completed: boolean;
@@ -16,15 +29,14 @@ interface Todo {
 
 export default function Home() {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
   const todos = useSelector((state: RootState) => state.todos.todos); // Access the todos array from the state
   const [title, setTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const handleAddTodo = async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/todos", {
         method: "POST",
@@ -37,7 +49,6 @@ export default function Home() {
     } catch (error) {
       console.error(error);
     }
-    setLoading(false);
   };
 
   const handleEditTodo = async (id: string) => {
@@ -100,93 +111,111 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, router, dispatch]);
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
-      <Container className="text-center d-flex justify-content-center align-items-center min-vh-100">
-        <Spinner animation="border" />
-      </Container>
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading...</p>
+      </div>
     );
   }
 
   return (
-    <Container className="mt-5">
-      <div className="d-flex justify-content-between align-items-center">
+    <div className="mx-auto lg:w-1/2 w-full p-4">
+      <div className="flex items-center py-4 justify-between gap-2">
         <h1>Welcome to Your Todo App</h1>
-        <Button variant="danger" onClick={() => signOut()}>
-          Sign Out
-        </Button>
+        <div className="flex items-center gap-2">
+          <p>{session?.user?.name}</p>
+          <Button size="sm" onClick={() => signOut()}>
+            <FaPowerOff />
+          </Button>
+          <ThemeToggle />
+        </div>
       </div>
 
       {session ? (
         <>
-          <p>You are signed in as {session.user?.email}</p>
-
-          <Form className="d-flex mt-3">
-            <Form.Control
+          <form className="flex items-center gap-2 py-4">
+            <Input
               type="text"
               placeholder="New task"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              ref={inputRef}
             />
             {editingId ? (
               <Button
-                variant="success"
-                className="ms-2"
-                onClick={() => handleEditTodo(editingId)}
+                onClick={() => {
+                  handleEditTodo(editingId);
+                }}
+                type="submit"
               >
                 Edit
               </Button>
             ) : (
-              <Button
-                variant="primary"
-                className="ms-2"
-                onClick={handleAddTodo}
-              >
+              <Button type="submit" variant="default" onClick={handleAddTodo}>
                 Add
               </Button>
             )}
-          </Form>
-          <ListGroup className="mt-4">
-            {todos?.map((todo: Todo) => (
-              <ListGroup.Item
-                key={todo._id}
-                className="d-flex justify-content-between align-items-center"
-              >
-                <span
-                  style={{
-                    textDecoration: todo.completed ? "line-through" : "unset",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleToggleComplete(todo._id, todo.completed)}
-                >
-                  {todo.title}
-                </span>
-                <div>
-                  <Button
-                    variant="success"
-                    className="me-2"
-                    onClick={() => {
-                      setTitle(todo.title);
-                      setEditingId(todo._id);
-                    }}
-                    disabled={editingId === todo._id}
+          </form>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">No.</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {todos?.map((todo: Todo, index: number) => (
+                <TableRow key={todo._id}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell
+                    onClick={() =>
+                      handleToggleComplete(todo._id, todo.completed)
+                    }
+                    className={`${
+                      todo.completed ? "line-through" : ""
+                    } cursor-pointer`}
                   >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDeleteTodo(todo._id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
+                    {todo.title}
+                  </TableCell>
+                  <TableCell className=" flex items-center gap-2 justify-end">
+                    {editingId === todo._id ? (
+                      <Button
+                        onClick={() => {
+                          setTitle("");
+                          setEditingId(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setTitle(todo.title);
+                          setEditingId(todo._id);
+                          inputRef.current?.focus();
+                        }}
+                        variant="secondary"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteTodo(todo._id)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </>
       ) : (
         <div>Redirecting...</div>
       )}
-    </Container>
+    </div>
   );
 }
