@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Container, Form, ListGroup, Spinner } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,6 +16,7 @@ interface Todo {
 
 export default function Home() {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
   const todos = useSelector((state: RootState) => state.todos.todos); // Access the todos array from the state
@@ -127,12 +128,15 @@ export default function Home() {
               placeholder="New task"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              ref={inputRef}
             />
             {editingId ? (
               <Button
                 variant="success"
                 className="ms-2"
-                onClick={() => handleEditTodo(editingId)}
+                onClick={() => {
+                  handleEditTodo(editingId);
+                }}
               >
                 Edit
               </Button>
@@ -162,17 +166,30 @@ export default function Home() {
                   {todo.title}
                 </span>
                 <div>
-                  <Button
-                    variant="success"
-                    className="me-2"
-                    onClick={() => {
-                      setTitle(todo.title);
-                      setEditingId(todo._id);
-                    }}
-                    disabled={editingId === todo._id}
-                  >
-                    Edit
-                  </Button>
+                  {editingId === todo._id ? (
+                    <Button
+                      variant="success"
+                      className="me-2"
+                      onClick={() => {
+                        setTitle("");
+                        setEditingId(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="success"
+                      className="me-2"
+                      onClick={() => {
+                        setTitle(todo.title);
+                        setEditingId(todo._id);
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  )}
                   <Button
                     variant="danger"
                     onClick={() => handleDeleteTodo(todo._id)}
