@@ -8,7 +8,11 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+<<<<<<< HEAD
 import { signIn, useSession } from "next-auth/react";
+=======
+import { signIn } from "next-auth/react";
+>>>>>>> 8cdf2c48bbe4ab61febf5e09c94dadc753a389e9
 import { ErrorMessage, Formik, Form } from "formik";
 
 export default function SignUp() {

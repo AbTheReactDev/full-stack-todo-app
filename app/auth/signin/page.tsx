@@ -9,7 +9,10 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ErrorMessage, Formik, Form } from "formik";
 import Link from "next/link";
+<<<<<<< HEAD
 import { useEffect } from "react";
+=======
+>>>>>>> 8cdf2c48bbe4ab61febf5e09c94dadc753a389e9
 
 export default function SignIn() {
   const router = useRouter();
@@ -23,6 +26,7 @@ export default function SignIn() {
       email,
       password,
     });
+    console.log(res);
 
     if (!res?.ok) {
       toast({
