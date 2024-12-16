@@ -1,7 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useState, FormEvent } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,9 +9,12 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ErrorMessage, Formik, Form } from "formik";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function SignIn() {
   const router = useRouter();
+
+  const { data: session, status } = useSession();
   const { toast } = useToast();
 
   const handleSubmit = async (email: string, password: string) => {
@@ -37,6 +39,12 @@ export default function SignIn() {
       });
     }
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    }
+  }, [status]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen mx-5">
@@ -92,6 +100,28 @@ export default function SignIn() {
             </Form>
           )}
         </Formik>
+
+        <form
+          action={async () => {
+            await signIn("google");
+          }}
+        >
+          <Button className="w-full mt-4 bg-blue-500 text-white">
+            Sign in with Google
+          </Button>
+        </form>
+        <form
+          action={async () => {
+            await signIn("github");
+          }}
+        >
+          <Button
+            variant="outline"
+            className="w-full mt-4 bg-green-500 text-white"
+          >
+            Sign in with Github
+          </Button>
+        </form>
         <p className="text-sm text-center mt-4">
           Don&apos;t have an account?{" "}
           <Link href="/auth/signup">

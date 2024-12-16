@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,12 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { ErrorMessage, Formik, Form } from "formik";
 
 export default function SignUp() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { toast } = useToast();
 
   const handleSubmit = async (values: {
@@ -69,6 +70,12 @@ export default function SignUp() {
       });
     }
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    }
+  }, [status]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen mx-5">
@@ -153,6 +160,27 @@ export default function SignUp() {
             </Form>
           )}
         </Formik>
+        <form
+          action={async () => {
+            await signIn("google");
+          }}
+        >
+          <Button className="w-full mt-4 bg-blue-500 text-white">
+            Sign Up with Google
+          </Button>
+        </form>
+        <form
+          action={async () => {
+            await signIn("github");
+          }}
+        >
+          <Button
+            variant="outline"
+            className="w-full mt-4 bg-green-500 text-white"
+          >
+            Sign Up with Github
+          </Button>
+        </form>
         <p className="text-sm text-center mt-4">
           Already have an account?{" "}
           <Link href="/auth/signin">

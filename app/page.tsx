@@ -120,7 +120,10 @@ export default function Home() {
       <div className="flex items-center py-4 justify-between gap-2">
         <h1 className="text-2xl font-bold">Welcome to Your Todo App</h1>
         <div className="flex items-center gap-2">
-          <p>{session?.user?.name}</p>
+          <div className="flex flex-col">
+            <p className="text-sm">{session?.user?.name}</p>
+            <p className="text-sm">{session?.user?.email}</p>
+          </div>
           <Button size="sm" onClick={() => signOut()}>
             <FaPowerOff />
           </Button>
