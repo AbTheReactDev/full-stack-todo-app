@@ -1,38 +1,45 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { ErrorMessage, Formik, Form } from "formik";
 
 export default function SignUp() {
-  const [name, setName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (values: {
+    email: string;
+    name: string;
+    password: string;
+  }) => {
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        }),
       });
+      const data = await res.json();
+
       if (res.ok) {
         const result = await signIn("credentials", {
           redirect: false,
-          email,
-          password,
+          email: values.email,
+          password: values.password,
         });
 
         if (result?.error) {
@@ -44,9 +51,16 @@ export default function SignUp() {
         } else {
           router.push("/");
           toast({
-            title: "Account created",
+            title: "Success",
+            description: "You are signed in",
           });
         }
+      } else {
+        toast({
+          title: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       toast({
@@ -57,49 +71,122 @@ export default function SignUp() {
     }
   };
 
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    }
+  }, [status]);
+
   return (
     <div className="flex flex-col items-center justify-center h-screen mx-5">
-      <Card className="p-4 w-full  lg:w-1/4">
+      <Card className="p-4 w-full sm:w-1/2 md:w-1/2 lg:w-1/3">
         <CardHeader>
           <CardTitle className="lg:text-2xl text-lg text-center">
             Create Account
           </CardTitle>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <Label htmlFor="name">Name</Label>
-          <Input
-            type="text"
-            placeholder="Enter name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="my-2 w-full"
-          />
-          <Label htmlFor="email">Email address</Label>
-          <Input
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="my-2 w-full"
-          />
-          <Label>Password</Label>
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            className="my-2"
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <div className="flex gap-2 justify-start mt-3">
-            <Button type="submit">Create</Button>
-            <Link href="/auth/signin">
-              <Button variant="secondary">Login</Button>
-            </Link>
-          </div>
+        <Formik
+          initialValues={{ name: "", email: "", password: "" }}
+          validate={(values) => {
+            const errors: { name?: string; email?: string; password?: string } =
+              {};
+            if (!values.name) {
+              errors.name = "Name is required";
+            }
+            if (
+              !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+            ) {
+              errors.email = "Invalid email address";
+            }
+            return errors;
+          }}
+          onSubmit={(values, { setSubmitting }) => {
+            handleSubmit(values);
+            setSubmitting(false);
+          }}
+        >
+          {({
+            values,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            isSubmitting,
+          }) => (
+            <Form onSubmit={handleSubmit}>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                type="text"
+                name="name"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.name}
+                className="mb-4"
+              />
+              <ErrorMessage
+                className="text-red-500"
+                name="name"
+                component="div"
+              />
+              <Label htmlFor="email">Email</Label>
+              <Input
+                type="email"
+                name="email"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.email}
+                className="mb-4"
+              />
+              <ErrorMessage
+                className="text-red-500"
+                name="email"
+                component="div"
+              />
+              <Label htmlFor="password">Password</Label>
+              <Input
+                type="password"
+                name="password"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.password}
+              />
+              <ErrorMessage name="password" component="div" />
+              <Button
+                className="w-full mt-4"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                Submit
+              </Button>
+            </Form>
+          )}
+        </Formik>
+        <form
+          action={async () => {
+            await signIn("google");
+          }}
+        >
+          <Button className="w-full mt-4 bg-blue-500 text-white">
+            Sign Up with Google
+          </Button>
         </form>
+        <form
+          action={async () => {
+            await signIn("github");
+          }}
+        >
+          <Button
+            variant="outline"
+            className="w-full mt-4 bg-green-500 text-white"
+          >
+            Sign Up with Github
+          </Button>
+        </form>
+        <p className="text-sm text-center mt-4">
+          Already have an account?{" "}
+          <Link href="/auth/signin">
+            <Button variant="link">Sign In</Button>
+          </Link>
+        </p>
       </Card>
     </div>
   );
