@@ -9,13 +9,11 @@ import { addTodo, deleteTodo, setTodos, updateTodo } from "@/redux/todoSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaPowerOff } from "react-icons/fa6";
-import { MdDarkMode } from "react-icons/md";
-import { Formik, Form, Label, ErrorMessage } from "formik";
+import { Formik, Form } from "formik";
 
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -33,7 +31,7 @@ export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
-  const todos = useSelector((state: RootState) => state.todos.todos); // Access the todos array from the state
+  const todos = useSelector((state: RootState) => state.todos.todos);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleAddTodo = async (title: string) => {
