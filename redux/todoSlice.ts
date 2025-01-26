@@ -1,12 +1,7 @@
 "use client";
 
+import { Todo } from '@/types/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export interface Todo {
-    _id: string;
-    title: string;
-    completed: boolean;
-}
 
 interface TodoState {
     todos: Todo[];

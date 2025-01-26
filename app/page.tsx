@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaPowerOff } from "react-icons/fa6";
 import { Formik, Form } from "formik";
-
 import {
   Table,
   TableBody,
@@ -20,14 +19,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ThemeToggle } from "@/components/ThemeToggle";
-interface Todo {
-  title: string;
-  completed: boolean;
-  _id: string;
-}
+import { Todo } from "@/types/types";
+import Logo from "@/public/logo.png";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function Home() {
   const router = useRouter();
+  const { theme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
@@ -118,7 +117,19 @@ export default function Home() {
   return (
     <div className="p-4 w-full lg:w-[75%] mx-auto">
       <div className="flex items-center py-4 justify-between gap-2">
-        <h1 className="text-2xl font-bold">Welcome to Your Todo App</h1>
+        <div className="flex gap-1 items-center">
+          <Image
+            style={{
+              filter: theme === "dark" ? "invert(1)" : "",
+            }}
+            height={50}
+            width={50}
+            src={Logo.src}
+            alt="logo"
+          />
+
+          <h1 className="text-2xl font-bold">Todo App</h1>
+        </div>
         <div className="flex items-center gap-2">
           <div className="flex flex-col">
             <p className="text-sm">{session?.user?.name}</p>

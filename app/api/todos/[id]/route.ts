@@ -28,6 +28,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         }
 
         const isTodo = await Todo.findOne({ _id: id, userId: isUser._id });
+
         if (!isTodo) {
             return NextResponse.json({ message: 'Todo not found' }, { status: 404 });
         }

@@ -15,11 +15,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <Toaster />
-        <ThemeProvider>
-          <NextAuthProvider>
-            <StoreProvider>{children}</StoreProvider>
-          </NextAuthProvider>
-        </ThemeProvider>
+        <StoreProvider>
+          <ThemeProvider>
+            <NextAuthProvider>{children}</NextAuthProvider>
+          </ThemeProvider>
+        </StoreProvider>
       </body>
     </html>
   );

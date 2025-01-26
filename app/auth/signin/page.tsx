@@ -13,7 +13,6 @@ import { useEffect } from "react";
 
 export default function SignIn() {
   const router = useRouter();
-
   const { data: session, status } = useSession();
   const { toast } = useToast();
 
@@ -23,7 +22,6 @@ export default function SignIn() {
       email,
       password,
     });
-    console.log(res);
 
     if (!res?.ok) {
       toast({
@@ -95,7 +93,7 @@ export default function SignIn() {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Loading..." : "Submit"}
+                {isSubmitting ? "Loading..." : "Login"}
               </Button>
             </Form>
           )}
