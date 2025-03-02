@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { addTodo, deleteTodo, setTodos, updateTodo } from "@/redux/todoSlice";
+import { addTodo, deleteTodo, toggleTodo, updateTodo } from "@/redux/todoSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaPowerOff } from "react-icons/fa6";
@@ -26,21 +26,22 @@ import { useTheme } from "next-themes";
 
 export default function Home() {
   const router = useRouter();
-  const { theme } = useTheme();
-  const inputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
-  const { data: session, status } = useSession();
+  const { theme } = useSelector((state: RootState) => state.theme);
   const todos = useSelector((state: RootState) => state.todos.todos);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { data: session, status } = useSession();
+
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleAddTodo = async (title: string) => {
     try {
-      const res = await fetch("/api/todos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title }),
-      });
-      const todo = await res.json();
+      const todo = {
+        title: title,
+        completed: false,
+        _id: Math.random().toString(36).slice(2, 11),
+      };
+
       dispatch(addTodo(todo));
     } catch (error) {
       console.error(error);
@@ -49,15 +50,8 @@ export default function Home() {
 
   const handleEditTodo = async (id: string, title: string) => {
     try {
-      const res = await fetch(`/api/todos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title }),
-      });
-      const updatedTodo = await res.json();
-      dispatch(updateTodo(updatedTodo));
+      dispatch(updateTodo({ id, title }));
       setEditingId(null);
-      fetchTodos();
     } catch (error) {
       console.error(error);
     }
@@ -65,14 +59,7 @@ export default function Home() {
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
     try {
-      const res = await fetch(`/api/todos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: !completed }),
-      });
-      const updatedTodo = await res.json();
-      dispatch(updateTodo(updatedTodo));
-      fetchTodos();
+      dispatch(toggleTodo(id));
     } catch (error) {
       console.error(error);
     }
@@ -80,31 +67,24 @@ export default function Home() {
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      await fetch(`/api/todos/${id}`, { method: "DELETE" });
       dispatch(deleteTodo(id));
     } catch (error) {
       console.error(error);
     }
   };
 
-  const fetchTodos = async () => {
-    try {
-      const res = await fetch("/api/todos");
-      const data = await res.json();
-      dispatch(setTodos(data));
-    } catch (error) {
-      console.error("Failed to fetch todos:", error);
-    }
+  const handleEditClick = (todo: Todo) => {
+    setEditingId(todo._id);
+    if (inputRef.current) inputRef.current.value = todo.title;
+    inputRef.current?.focus();
   };
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
-    } else if (status === "authenticated") {
-      fetchTodos();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, router, dispatch]);
+  }, [status, router]);
 
   if (status === "loading") {
     return (
@@ -170,7 +150,7 @@ export default function Home() {
 
             {editingId ? (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Loading..." : "Edit"}
+                {isSubmitting ? "Loading..." : "Save"}
               </Button>
             ) : (
               <Button
@@ -223,15 +203,7 @@ export default function Home() {
                       Cancel
                     </Button>
                   ) : (
-                    <Button
-                      onClick={() => {
-                        setEditingId(todo._id);
-                        if (inputRef.current)
-                          inputRef.current.value = todo.title;
-                        inputRef.current?.focus();
-                      }}
-                      variant="secondary"
-                    >
+                    <Button onClick={() => handleEditClick(todo)} variant="secondary">
                       Edit
                     </Button>
                   )}

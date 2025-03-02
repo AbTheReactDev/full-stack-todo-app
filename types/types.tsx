@@ -3,3 +3,9 @@ export interface Todo {
   completed: boolean;
   _id: string;
 }
+
+export enum Theme {
+  LIGHT = 'light',
+  DARK = 'dark',
+  SYSTEM = 'system'
+}

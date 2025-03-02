@@ -1,14 +1,15 @@
 "use client";
 
+import { Theme } from '@/types/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 
 const loadThemeFromLocalStorage = () => {
     if (typeof window !== 'undefined') {
-        const storedTheme = localStorage.getItem('theme');
-        return storedTheme || 'light'; // Default to 'light' if no theme is stored
+        const storedTheme = localStorage.getItem('theme') as Theme;
+        return storedTheme || Theme.LIGHT; 
     }
-    return 'light';
+    return Theme.LIGHT;
 };
 
 const saveThemeToLocalStorage = (theme: string) => {
@@ -17,7 +18,7 @@ const saveThemeToLocalStorage = (theme: string) => {
     }
 };
 
-const initialState = {
+const initialState : {theme : Theme} = {
     theme: loadThemeFromLocalStorage(),
 };
 
@@ -26,11 +27,12 @@ const themeSlice = createSlice({
     initialState,
     reducers: {
         toggleTheme: (state) => {
-            state.theme = state.theme === "light" ? "dark" : "light"
+            state.theme = state.theme === Theme.LIGHT ? Theme.DARK : Theme.LIGHT
             saveThemeToLocalStorage(state.theme)
         },
-        setTheme: (state, action: PayloadAction<string>) => {
+        setTheme: (state, action: PayloadAction<Theme>) => {
             state.theme = action.payload
+            saveThemeToLocalStorage(state.theme);
         }
     },
 });
