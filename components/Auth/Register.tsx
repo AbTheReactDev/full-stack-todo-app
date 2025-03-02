@@ -22,9 +22,9 @@ export default function Register() {
 
   const handleSubmit = async () => {
     let profilePictureUrl = "";
-    // if (profilePhoto) {
-    //   profilePictureUrl = await uploadToCloudinary(profilePhoto);
-    // }
+    if (profilePhoto) {
+      profilePictureUrl = await uploadToCloudinary(profilePhoto);
+    }
 
     const formData = new FormData();
     formData.append("name", registerFormData.name);
@@ -57,9 +57,7 @@ export default function Register() {
   
   return (
     <div className="flex justify-center items-center h-screen ">
-      <form
-        method="POST"
-        onSubmit={handleSubmit}
+      <div
         className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6"
       >
         <h2 className="text-2xl font-semibold text-center mb-4">Register</h2>
@@ -145,6 +143,7 @@ export default function Register() {
         {/* Register Button */}
         <button
           type="submit"
+          onClick={handleSubmit}
           className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300"
         >
           Register
@@ -156,7 +155,7 @@ export default function Register() {
             Have an account? Login
           </Link>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

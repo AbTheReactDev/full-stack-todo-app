@@ -4,7 +4,7 @@ export const uploadToCloudinary = async (file: File) => {
     formData.append("file", file);
     formData.append(
       "upload_preset",
-      process.env.CLOUDINARY_UPLOAD_PRESET as string
+      "ecommerce_up"
     );
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/dx2t9xael/image/upload`,

@@ -22,10 +22,7 @@ export async function POST(req: NextRequest) {
     const isUser = await User.findOne({ email });
 
     if (!isUser) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     const isMatch = await bcrypt.compare(password, isUser.password);
@@ -45,15 +42,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const token = jwt.sign(
-      { id: isUser._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: isUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     // Set HTTP-only cookie (recommended for security)
     const response = NextResponse.json(
-      { message: "User logged in successfully",token},
+      { message: "User logged in successfully", token, user: isUser },
       { status: 200 }
     );
 

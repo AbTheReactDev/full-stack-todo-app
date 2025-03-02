@@ -8,6 +8,7 @@ interface User {
   address: string;
   role: string;
   token?: string;
+  profile_photo : string
 }
 
 interface AuthState {

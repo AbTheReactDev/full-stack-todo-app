@@ -2,12 +2,15 @@
 
 import { toast } from "@/hooks/use-toast";
 import { loginUser } from "@/redux/authSlice";
+import { RootState } from "@/redux/store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
-import { useDispatch } from "react-redux";
+import { ChangeEvent, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Login() {
+  const { user } = useSelector((state : RootState) => state.auth)
+  
   const router = useRouter();
   const dispatch = useDispatch();
   const [loginFormData, setLoginFormData] = useState({
@@ -31,11 +34,9 @@ export default function Login() {
 
     const data = await res.json();
 
-    console.log("DATA",data);
-    
     if (res.ok) {
       dispatch(loginUser(data.user));
-      localStorage.setItem("auth-token", data.token);
+      localStorage.setItem("token", data.token);
       toast({
         title: "Success",
         description: "Login Successful.",
@@ -51,15 +52,16 @@ export default function Login() {
     }
   };
 
+  useEffect(() => {
+    if(user){
+      router.push('/')
+    }
+  },[user])
+
   return (
     <div className="flex justify-center items-center h-screen">
-      <form
-        method="POST"
-        onSubmit={handleSubmit}
-        className="max-w-sm mx-auto p-6 bg-white shadow-lg rounded-lg"
-      >
+      <div className="max-w-sm mx-auto p-6 bg-white shadow-lg rounded-lg">
         <h2 className="text-2xl font-semibold text-center mb-4">Login</h2>
-
         <div className="mb-4">
           <label className="block text-gray-700 font-medium">Email</label>
           <input
@@ -88,6 +90,7 @@ export default function Login() {
 
         <button
           type="submit"
+          onClick={handleSubmit}
           className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300"
         >
           Login
@@ -95,7 +98,7 @@ export default function Login() {
         <div className="text-center pt-5">
           <Link href="/auth/register">Dont have an account ? Register </Link>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

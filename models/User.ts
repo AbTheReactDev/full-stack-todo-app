@@ -12,6 +12,7 @@ export interface IUser extends Document {
   address: string;
   role: UserRole;
   createdAt: Date;
+  profile_photo : string
 }
 
 const userSchema = new Schema<IUser>({
@@ -19,6 +20,7 @@ const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phone: { type: String, required: true },
+  profile_photo: { type: String },
   address: { type: String, required: true },
   role: { type: String, default: UserRole.USER },
   createdAt: { type: Date, default: Date.now },
