@@ -36,7 +36,6 @@ export default function Login() {
 
     if (res.ok) {
       dispatch(loginUser(data.user));
-      localStorage.setItem("token", data.token);
       toast({
         title: "Success",
         description: "Login Successful.",

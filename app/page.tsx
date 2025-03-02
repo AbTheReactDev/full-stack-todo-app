@@ -22,7 +22,7 @@ export default function Home() {
   const { theme } = useSelector((state: RootState) => state.theme);
 
   const handleLogout = async () => {
-    localStorage.removeItem("auth_token");
+    await fetch("/api/auth/logout", { method: "GET" });
     persistor.purge();
     dispatch(logoutUser());
   };
