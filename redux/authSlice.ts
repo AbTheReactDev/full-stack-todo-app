@@ -1,4 +1,3 @@
-import { IUser } from "@/models/User";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface User {
@@ -9,7 +8,9 @@ interface User {
   role: string;
   token?: string;
   profile_photo : string
+  _id : string
 }
+
 
 interface AuthState {
   user: User | null;

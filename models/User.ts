@@ -12,7 +12,7 @@ export interface IUser extends Document {
   address: string;
   role: UserRole;
   createdAt: Date;
-  profile_photo : string
+  profile_photo : string;
 }
 
 const userSchema = new Schema<IUser>({
