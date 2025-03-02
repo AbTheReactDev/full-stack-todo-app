@@ -1,224 +1,31 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "@/redux/authSlice";
 import { RootState } from "@/redux/store";
-import { addTodo, deleteTodo, toggleTodo, updateTodo } from "@/redux/todoSlice";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FaPowerOff } from "react-icons/fa6";
-import { Formik, Form } from "formik";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Todo } from "@/types/types";
-import Logo from "@/public/logo.png";
-import Image from "next/image";
-import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Home() {
-  const router = useRouter();
   const dispatch = useDispatch();
-  const { theme } = useSelector((state: RootState) => state.theme);
-  const todos = useSelector((state: RootState) => state.todos.todos);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { user } = useSelector((state: RootState) => state.auth);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const handleAddTodo = async (title: string) => {
-    try {
-      const todo = {
-        title: title,
-        completed: false,
-        _id: Math.random().toString(36).slice(2, 11),
-      };
-
-      dispatch(addTodo(todo));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleEditTodo = async (id: string, title: string) => {
-    try {
-      dispatch(updateTodo({ id, title }));
-      setEditingId(null);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleToggleComplete = async (id: string, completed: boolean) => {
-    try {
-      dispatch(toggleTodo(id));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleDeleteTodo = async (id: string) => {
-    try {
-      dispatch(deleteTodo(id));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleEditClick = (todo: Todo) => {
-    setEditingId(todo._id);
-    if (inputRef.current) inputRef.current.value = todo.title;
-    inputRef.current?.focus();
+  const handleLogout = async () => {
+    localStorage.removeItem("token");
+    dispatch(logoutUser());
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
+    if (!user) {
+      router.push("/auth/login");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, router]);
-
-  if (status === "loading") {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
+  }, [user]);
   return (
-    <div className="p-4 w-full lg:w-[75%] mx-auto">
-      <div className="flex items-center py-4 justify-between gap-2">
-        <div className="flex gap-1 items-center">
-          <Image
-            style={{
-              filter: theme === "dark" ? "invert(1)" : "",
-            }}
-            height={50}
-            width={50}
-            src={Logo.src}
-            alt="logo"
-          />
-
-          <h1 className="text-2xl font-bold">Todo App</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <p className="text-sm">{session?.user?.name}</p>
-            <p className="text-sm">{session?.user?.email}</p>
-          </div>
-          <Button size="sm" onClick={() => signOut()}>
-            <FaPowerOff />
-          </Button>
-          <ThemeToggle />
-        </div>
-      </div>
-      <Formik
-        initialValues={{ title: "" }}
-        onSubmit={(values, { setSubmitting, resetForm }) => {
-          setSubmitting(true);
-          if (editingId) {
-            handleEditTodo(editingId, values.title);
-          } else {
-            handleAddTodo(values.title);
-          }
-          setSubmitting(false);
-          resetForm();
-          if (inputRef.current) inputRef.current.value = "";
-        }}
-      >
-        {({ values, handleChange, handleBlur, isSubmitting }) => (
-          <Form className="flex items-center gap-2">
-            <Input
-              type="text"
-              name="title"
-              onChange={handleChange}
-              onBlur={handleBlur}
-              value={values.title || inputRef.current?.value}
-              required
-              ref={inputRef}
-              placeholder="New task"
-            />
-
-            {editingId ? (
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Loading..." : "Save"}
-              </Button>
-            ) : (
-              <Button
-                disabled={isSubmitting || !values.title}
-                type="submit"
-                variant="default"
-              >
-                {isSubmitting ? "Loading..." : "Add"}
-              </Button>
-            )}
-          </Form>
-        )}
-      </Formik>
-
-      {!todos.length && (
-        <div className="flex justify-center items-center h-[80vh]">
-          <p className="text-2xl font-bold">No todos found</p>
-        </div>
-      )}
-
-      {todos.length > 0 && (
-        <Table className="mt-10">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">No.</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {todos?.map((todo: Todo, index: number) => (
-              <TableRow key={todo._id}>
-                <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell
-                  onClick={() => handleToggleComplete(todo._id, todo.completed)}
-                  className={`${
-                    todo.completed ? "line-through" : ""
-                  } cursor-pointer`}
-                >
-                  {todo.title}
-                </TableCell>
-                <TableCell className=" flex items-center gap-2 justify-end">
-                  {editingId === todo._id ? (
-                    <Button
-                      onClick={() => {
-                        if (inputRef.current) inputRef.current.value = "";
-                        setEditingId(null);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  ) : (
-                    <Button onClick={() => handleEditClick(todo)} variant="secondary">
-                      Edit
-                    </Button>
-                  )}
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteTodo(todo._id)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+    <div>
+      Name : {user?.name}
+      Email : {user?.email}
+      <button onClick={handleLogout} >Logout</button>
     </div>
   );
 }

@@ -2,12 +2,14 @@
 
 import { configureStore } from '@reduxjs/toolkit';
 import todoReducer from './todoSlice';
+import authReducer from './authSlice';
 import themeReducer from './themeSlice';
 
 export const store = configureStore({
     reducer: {
         todos: todoReducer,
-        theme: themeReducer
+        theme: themeReducer,
+        auth : authReducer
     },
     devTools: true,
 });

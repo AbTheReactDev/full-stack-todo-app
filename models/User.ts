@@ -1,38 +1,28 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
-interface UserDocument extends mongoose.Document {
+export enum UserRole {
+  USER = "user",
+  ADMIN = "admin",
+}
+export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  phone: string;
+  address: string;
+  role: UserRole;
+  createdAt: Date;
 }
 
-const userSchema = new mongoose.Schema<UserDocument>({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-    index: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
-}, {
-  timestamps: true
+const userSchema = new Schema<IUser>({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  phone: { type: String, required: true },
+  address: { type: String, required: true },
+  role: { type: String, default: UserRole.USER },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Add index for faster email lookups since we query by email often
-userSchema.index({ email: 1 });
-
-const User = mongoose.models.User || mongoose.model<UserDocument>('User', userSchema);
-
-export default User;
-
-export type { UserDocument };
+export default mongoose.models.User ||
+  mongoose.model<IUser>("User", userSchema);

@@ -2,11 +2,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-interface EnvVariables {
-    MONGODB_URI: string;
-    NEXTAUTH_SECRET: string;
-}
-
 // Access environment variables with type safety
 export const MONGODB_URI: string = process.env.MONGODB_URI as string;
 export const NEXTAUTH_SECRET: string = process.env.NEXTAUTH_SECRET as string;

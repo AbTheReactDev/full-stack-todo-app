@@ -1,6 +1,5 @@
 "use client";
 
-import NextAuthProvider from "@/components/NextAuthProvider";
 import StoreProvider from "@/components/StoreProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ReactNode } from "react";
@@ -16,9 +15,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Toaster />
         <StoreProvider>
-          <ThemeProvider>
-            <NextAuthProvider>{children}</NextAuthProvider>
-          </ThemeProvider>
+          {/* <ThemeProvider> */}
+            {children}
+          {/* </ThemeProvider> */}
         </StoreProvider>
       </body>
     </html>
